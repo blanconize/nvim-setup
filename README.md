@@ -28,6 +28,16 @@ cd ~/Development/bnize/dotfiles && ./install.sh
 
 Because everything is symlinked, edits in this repo take effect immediately.
 
+### Terminal app
+
+Use a true-colour terminal — Apple Terminal is not one, and the Neovim
+theme needs 24-bit colour. iTerm2 (`brew install --cask iterm2`) with the
+colour preset in [`iterm2/honukai.itermcolors`](iterm2/honukai.itermcolors):
+`open iterm2/honukai.itermcolors` imports it, then pick it under
+Settings → Profiles → Colors → Color Presets. Font: `JetBrainsMono Nerd
+Font` (`brew install --cask font-jetbrains-mono-nerd-font`) so plugin icons
+render. Make it the default via menu **iTerm2 → Make iTerm2 Default Term**.
+
 ## Daily workflow
 
 ```bash
