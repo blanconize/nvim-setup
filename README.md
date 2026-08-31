@@ -10,11 +10,13 @@ by now almost entirely rewritten.
 ## Install
 
 ```bash
-git clone git@github.com:blanconize/nvim-setup.git ~/Development/bnize/dotfiles
-cd ~/Development/bnize/dotfiles && ./install.sh
+git clone git@github.com:blanconize/nvim-setup.git
+cd nvim-setup && ./install.sh
 ```
 
-The only prerequisite is a Mac with `git` (Xcode Command Line Tools).
+Clone it wherever you like — the symlinks point at the clone, so the
+location does not matter, only that it stays put. The only prerequisite is
+a Mac with `git` (Xcode Command Line Tools).
 `install.sh` is idempotent and pins nothing — every installer fetches the
 current version. It
 
@@ -58,7 +60,7 @@ Profiles → Other Actions → Set as Default. Colour changes go into the
 ## Daily workflow
 
 ```bash
-dev ~/Development/aviam/aviam-billing
+dev path/to/some-repo
 ```
 
 opens (or re-attaches) a tmux session named after the repo: Neovim on the
@@ -94,7 +96,7 @@ Quit the Claude desktop app and VS Code — together ~2.2 GB of Electron.
 | `.tmux.conf` | Prefix `Ctrl-a`, vi keys, mouse, focus-events, path-preserving splits. |
 | `.zsh-tools` | `EDITOR=nvim`, fzf + zoxide shell integration, the `dev` function. |
 | `.zsh-aliases` | pnpm shortcuts (`pd`, `pt`, `pv`, …), `g`, `lg`, `dc`, `k`, `kill_port <port>`. |
-| `.gitconfig` | Aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), delta pager, zdiff3 conflicts, rebase-on-pull, osxkeychain. Repos under `~/Development/aviam/` get the work e-mail via `includeIf` → `.gitconfig-aviam`. |
+| `.gitconfig` | Aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), delta pager, zdiff3 conflicts, rebase-on-pull, osxkeychain. Repos under the work directory named in the `includeIf` (default `~/Development/aviam/`) get the work e-mail via `.gitconfig-aviam` — adjust both to your own layout and identity. |
 | `.gitignore_global` | Ignore rules for every repo. |
 | `claude/CLAUDE.md` | Global Claude Code rules shared by all repos (TDD, TS/React rules, code limits). Repo `AGENTS.md` files add specifics. |
 | `claude/settings.json` | Claude Code user settings: permission allow/deny list and the hooks below. |
