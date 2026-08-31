@@ -38,15 +38,32 @@ opens (or re-attaches) a tmux session named after the repo: Neovim on the
 left, Claude Code on the right, a second window with a plain shell. tmux
 prefix is `Ctrl-a`; `|` / `-` split, `h j k l` move between panes.
 
-Claude edits files on disk; Neovim reloads them automatically (`autoread` +
-tmux `focus-events`). Review Claude's changes with `<leader>gd` (Diffview) or
-`lg` (lazygit); `git diff` uses delta.
+`claude` is a shell function: it starts the CLI with `--ide`, warns when a
+session already runs in the same repo, and offers `--continue` for the last
+one. Inside Neovim, [claudecode.nvim](https://github.com/coder/claudecode.nvim)
+speaks the IDE protocol: Claude sees the current buffer and visual selection
+(`<leader>ks` to send, `<leader>kb` to add the buffer), and its proposed
+changes open as Neovim diff buffers — `<leader>ka` accepts, `<leader>kd`
+rejects. Claude itself stays in the tmux pane (`provider = "none"`), so no
+embedded terminal.
+
+Files Claude writes directly are reloaded automatically (`autoread` + tmux
+`focus-events`). Review with `<leader>gd` (Diffview) or `lg` (lazygit);
+`git diff` uses delta.
+
+### Memory budget
+
+Neovim ~30 MB, tmux + shells ~40 MB, tsserver 60–500 MB, one Claude session
+300–600 MB. The ESLint language server (~380 MB resident) is replaced by
+`nvim-lint` + `eslint_d` on save; the Tailwind language server (~600 MB) is
+installed but only started on demand with `:TailwindOn` / `<leader>kt`.
+Quit the Claude desktop app and VS Code — together ~2.2 GB of Electron.
 
 ## What's inside
 
 | Path | Purpose |
 |---|---|
-| `nvim/init.lua` | Neovim: lazy.nvim, Treesitter, LSP via Mason (ts_ls, eslint, basedpyright, json, html, css, tailwind, lua, bash, yaml), blink.cmp completion, conform (Prettier/ruff/stylua on save), organize-imports + eslint-fix on save for TS, fzf-lua, gitsigns/fugitive/diffview, vim-test (Vitest/pytest), oil.nvim. |
+| `nvim/init.lua` | Neovim: lazy.nvim, Treesitter, LSP via Mason (ts_ls, basedpyright, json, html, css, lua, bash, yaml; tailwind on demand), blink.cmp completion, conform (Prettier/ruff/stylua on save), nvim-lint (eslint_d/ruff), organize-imports on save for TS, fzf-lua, gitsigns/fugitive/diffview, vim-test (Vitest/pytest), oil.nvim, claudecode.nvim. |
 | `.tmux.conf` | Prefix `Ctrl-a`, vi keys, mouse, focus-events, path-preserving splits. |
 | `.zsh-tools` | `EDITOR=nvim`, fzf + zoxide shell integration, the `dev` function. |
 | `.zsh-aliases` | pnpm shortcuts (`pd`, `pt`, `pv`, …), `g`, `lg`, `dc`, `k`, `kill_port <port>`. |
@@ -73,6 +90,9 @@ Leader is `<Space>`.
 | `<leader>rn` | rename symbol |
 | `<leader>c` / `<leader>qf` / `<leader>o` | code action / quick fix / organize imports |
 | `<leader>f` | format (also runs on save; `:FormatToggle` to pause) |
+| `<leader>ks` (visual) / `<leader>kb` | send selection / add buffer to Claude |
+| `<leader>ka` / `<leader>kd` / `<leader>kx` | accept / reject / close Claude diffs |
+| `<leader>ki` / `<leader>kt` | Claude connection status / start Tailwind LSP |
 | `<leader>;` / `<leader>'` / `<leader>t` | test nearest / file / last (Vitest, pytest) |
 | `<leader>g` / `<leader>gs` / `<leader>gd` / `<leader>gh` / `<leader>gb` | blame / status / diff working tree / file history / open on GitHub |
 | `<leader>\` / `<leader>/` | vertical / horizontal split; `<C-h/j/k/l>` move |

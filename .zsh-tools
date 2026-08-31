@@ -28,9 +28,35 @@ dev() {
   tmux new-session -d -s "$name" -c "$dir" -n edit
   tmux send-keys -t "$name:edit" 'nvim' C-m
   tmux split-window -h -t "$name:edit" -c "$dir" -l 45%
-  tmux send-keys -t "$name:edit.2" 'claude' C-m
+  tmux send-keys -t "$name:edit.2" 'claude --ide' C-m
   tmux new-window -t "$name" -n shell -c "$dir"
   tmux select-window -t "$name:edit"
   tmux select-pane -t "$name:edit.1"
   tmux attach -t "$name"
+}
+
+# claude: one session per repo. Warns when a session already runs in this
+# directory, offers --continue when a previous one exists. `--ide` connects
+# to the claudecode.nvim server so Claude sees the open buffer/selection.
+claude() {
+  local bin
+  bin="$(whence -p claude)" || { echo "claude is not installed"; return 127; }
+  if [ $# -eq 0 ]; then
+    local running=0 pid
+    for pid in $(pgrep -x claude); do
+      lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | grep -q "^n${PWD}$" && running=$((running + 1))
+    done
+    if [ "$running" -gt 0 ]; then
+      echo "⚠  $running Claude session(s) already running in $PWD (tmux: prefix+s to find them)"
+      read -q "REPLY?Start another one anyway? [y/N] " || { echo; return 1; }
+      echo
+    fi
+    local proj="$HOME/.claude/projects/$(printf '%s' "$PWD" | sed 's#[/.]#-#g')"
+    if ls "$proj"/*.jsonl >/dev/null 2>&1; then
+      read -q "REPLY?Continue the last session here? [y/N] " && { echo; "$bin" --ide --continue; return; }
+      echo
+    fi
+    set -- --ide
+  fi
+  "$bin" "$@"
 }

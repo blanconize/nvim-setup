@@ -107,7 +107,7 @@ ensure_line "$HOME/.zshrc" 'zsh-tools'   'source ~/.zsh-tools'
 info "Installing Neovim plugins, parsers and language servers..."
 nvim --headless "+Lazy! sync" +qa
 nvim --headless -c 'lua require("nvim-treesitter").install(vim.g.ts_langs):wait(600000)' +qa
-MASON_PKGS="typescript-language-server eslint-lsp basedpyright json-lsp html-lsp css-lsp tailwindcss-language-server lua-language-server bash-language-server yaml-language-server stylua ruff prettier"
+MASON_PKGS="typescript-language-server eslint_d basedpyright json-lsp html-lsp css-lsp tailwindcss-language-server lua-language-server bash-language-server yaml-language-server stylua ruff prettier"
 missing=""
 for pkg in $MASON_PKGS; do
   [ -d "$HOME/.local/share/nvim/mason/packages/$pkg" ] || missing="$missing $pkg"

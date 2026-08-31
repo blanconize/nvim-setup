@@ -121,9 +121,32 @@ require("lazy").setup({
   { "mason-org/mason-lspconfig.nvim",
     dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig" },
     opts = {
-      ensure_installed = { "ts_ls", "eslint", "basedpyright", "jsonls", "html", "cssls",
+      ensure_installed = { "ts_ls", "basedpyright", "jsonls", "html", "cssls",
         "tailwindcss", "lua_ls", "bashls", "yamlls" },
+      -- tailwindcss-language-server costs ~600 MB; start it on demand with :TailwindOn
+      automatic_enable = { exclude = { "tailwindcss", "eslint" } },
     } },
+
+  -- Linting on save via eslint_d / ruff (no resident ESLint language server)
+  { "mfussenegger/nvim-lint", event = { "BufReadPost", "BufWritePost" },
+    config = function()
+      local lint = require("lint")
+      lint.linters_by_ft = {
+        javascript = { "eslint_d" }, javascriptreact = { "eslint_d" },
+        typescript = { "eslint_d" }, typescriptreact = { "eslint_d" },
+        python = { "ruff" },
+      }
+      vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
+        callback = function() lint.try_lint(nil, { ignore_errors = true }) end,
+      })
+      -- lazy-loaded on BufReadPost: that event has already fired for the first buffer
+      lint.try_lint(nil, { ignore_errors = true })
+    end },
+
+  -- Claude Code IDE protocol (selection/context sharing, diffs as Neovim buffers).
+  -- provider = "none": Claude itself runs in the tmux pane next door (see `dev`).
+  { "coder/claudecode.nvim", event = "VeryLazy",
+    opts = { terminal = { provider = "none" }, diff_opts = { open_in_new_tab = true } } },
 
   -- Completion
   { "saghen/blink.cmp", version = "1.*", event = "InsertEnter",
@@ -191,17 +214,21 @@ local function organize_imports(bufnr)
   end
 end
 
--- On save for TS/TSX: organize imports -> eslint --fix -> (conform runs prettier afterwards)
+-- On save for TS/TSX: organize imports (conform runs prettier afterwards)
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = { "*.ts", "*.tsx", "*.js", "*.jsx" },
   callback = function(ev)
     if vim.b[ev.buf].disable_autoformat then return end
     organize_imports(ev.buf)
-    if #vim.lsp.get_clients({ bufnr = ev.buf, name = "eslint" }) > 0 then
-      pcall(vim.cmd, "LspEslintFixAll")
-    end
   end,
 })
+
+-- Cap tsserver memory; Tailwind LSP only on demand
+vim.lsp.config("ts_ls", { init_options = { maxTsServerMemory = 3072 } })
+vim.api.nvim_create_user_command("TailwindOn", function()
+  vim.lsp.enable("tailwindcss")
+  vim.cmd("LspStart tailwindcss")
+end, {})
 
 vim.api.nvim_create_user_command("FormatToggle", function()
   vim.b.disable_autoformat = not vim.b.disable_autoformat
@@ -271,6 +298,21 @@ map("n", "<leader>gb", "<cmd>GBrowse<CR>", "Open on GitHub")
 map("n", "<leader>;", "<cmd>TestNearest<CR>", "Test nearest")
 map("n", "<leader>'", "<cmd>TestFile<CR>", "Test file")
 map("n", "<leader>t", "<cmd>TestLast<CR>", "Test last")
+
+-- Claude Code under <leader>k (<leader>a is grep)
+map("v", "<leader>ks", "<cmd>ClaudeCodeSend<CR>", "Send selection to Claude")
+map("n", "<leader>kb", "<cmd>ClaudeCodeAdd %<CR>", "Add buffer to Claude context")
+map("n", "<leader>ka", "<cmd>ClaudeCodeDiffAccept<CR>", "Accept Claude diff")
+map("n", "<leader>kd", "<cmd>ClaudeCodeDiffDeny<CR>", "Reject Claude diff")
+map("n", "<leader>kx", "<cmd>ClaudeCodeCloseAllDiffs<CR>", "Close all Claude diffs")
+map("n", "<leader>ki", "<cmd>ClaudeCodeStatus<CR>", "Claude connection status")
+map("n", "<leader>kt", "<cmd>TailwindOn<CR>", "Start Tailwind LSP")
+vim.api.nvim_create_autocmd("User", {
+  pattern = "ClaudeCodeSendComplete",
+  callback = function()
+    if vim.env.TMUX then vim.fn.system({ "tmux", "select-pane", "-R" }) end
+  end,
+})
 
 -- Format / config
 map("n", "<leader>f", function() require("conform").format({ lsp_format = "never" }) end, "Format")
