@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # Installs these dotfiles on macOS: tooling via Homebrew, oh-my-zsh + theme,
-# and symlinks for the config files. Safe to re-run; existing real files are
-# backed up as <file>.bak before being replaced by a symlink.
+# Neovim plugins/LSPs, and symlinks for every config file (including
+# ~/.claude). Safe to re-run; existing real files are backed up as <file>.bak.
 
 set -euo pipefail
 
@@ -31,23 +31,42 @@ ensure_tool() { # ensure_tool <binary> <brew formula>
   fi
 }
 
-link() { # link <repo file> <target>
+link() { # link <repo path> <target>
   local src="$DOTFILES/$1" dst="$2"
+  mkdir -p "$(dirname "$dst")"
   if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
     ok "  $dst already linked"
     return
   fi
   if [ -e "$dst" ] || [ -L "$dst" ]; then
     warn "  backing up $dst -> $dst.bak"
+    rm -rf "$dst.bak"
     mv "$dst" "$dst.bak"
   fi
   ln -s "$src" "$dst"
   ok "  linked $dst -> $src"
 }
 
+ensure_line() { # ensure_line <file> <grep pattern> <line to append>
+  touch "$1"
+  if grep -q "$2" "$1"; then
+    ok "  $1 already contains '$2'"
+  else
+    printf '\n%s\n' "$3" >> "$1"
+    ok "  added '$3' to $1"
+  fi
+}
+
 ensure_tool zsh zsh
 ensure_tool rg ripgrep
 ensure_tool fzf fzf
+ensure_tool nvim neovim
+ensure_tool tree-sitter tree-sitter-cli   # compiles Treesitter parsers
+ensure_tool tmux tmux
+ensure_tool delta git-delta
+ensure_tool lazygit lazygit
+ensure_tool gh gh
+ensure_tool zoxide zoxide
 
 info "Checking for oh-my-zsh..."
 if [ -d "$HOME/.oh-my-zsh" ]; then
@@ -66,36 +85,38 @@ else
     https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.zsh-theme
 fi
 
-info "Checking for vim-plug..."
-if [ -f "$HOME/.vim/autoload/plug.vim" ]; then
-  ok "  vim-plug is already installed"
-else
-  warn "  installing vim-plug"
-  curl -fsSL --create-dirs -o "$HOME/.vim/autoload/plug.vim" \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-fi
-
 info "Linking config files..."
-link .vimrc            "$HOME/.vimrc"
 link .gitconfig        "$HOME/.gitconfig"
+link .gitconfig-aviam  "$HOME/.gitconfig-aviam"
 link .gitignore_global "$HOME/.gitignore_global"
 link .zsh-aliases      "$HOME/.zsh-aliases"
+link .zsh-tools        "$HOME/.zsh-tools"
+link .tmux.conf        "$HOME/.tmux.conf"
+link nvim              "$HOME/.config/nvim"
 
-info "Wiring .zsh-aliases into ~/.zshrc..."
-touch "$HOME/.zshrc"
-if grep -q 'zsh-aliases' "$HOME/.zshrc"; then
-  ok "  ~/.zshrc already sources ~/.zsh-aliases"
+info "Linking Claude Code config..."
+mkdir -p "$HOME/.claude"
+link claude/CLAUDE.md      "$HOME/.claude/CLAUDE.md"
+link claude/settings.json  "$HOME/.claude/settings.json"
+link claude/hooks          "$HOME/.claude/hooks"
+
+info "Wiring shell files into ~/.zshrc..."
+ensure_line "$HOME/.zshrc" 'zsh-aliases' 'source ~/.zsh-aliases'
+ensure_line "$HOME/.zshrc" 'zsh-tools'   'source ~/.zsh-tools'
+
+info "Installing Neovim plugins, parsers and language servers..."
+nvim --headless "+Lazy! sync" +qa
+nvim --headless -c 'lua require("nvim-treesitter").install(vim.g.ts_langs):wait(600000)' +qa
+MASON_PKGS="typescript-language-server eslint-lsp basedpyright json-lsp html-lsp css-lsp tailwindcss-language-server lua-language-server bash-language-server yaml-language-server stylua ruff prettier"
+missing=""
+for pkg in $MASON_PKGS; do
+  [ -d "$HOME/.local/share/nvim/mason/packages/$pkg" ] || missing="$missing $pkg"
+done
+if [ -n "$missing" ]; then
+  nvim --headless -c "MasonInstall$missing" +qa
 else
-  printf '\nsource ~/.zsh-aliases\n' >> "$HOME/.zshrc"
-  ok "  added 'source ~/.zsh-aliases' to ~/.zshrc"
+  ok "  all Mason packages already installed"
 fi
+ok "  done"
 
-info "Installing Vim plugins..."
-if [ -t 0 ]; then
-  vim -N -u "$HOME/.vimrc" +'PlugInstall --sync' +qa
-  ok "  done"
-else
-  warn "  no terminal attached – run 'vim +PlugInstall +qa' yourself"
-fi
-
-ok "All set. Open a new shell (or run: source ~/.zshrc)."
+ok "All set. Open a new shell (or run: source ~/.zshrc), then 'dev <repo>' to start a tmux session."

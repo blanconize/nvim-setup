@@ -5,6 +5,10 @@
 [credential]
   helper = osxkeychain
 
+# Work identity for everything under ~/Development/aviam/
+[includeIf "gitdir:~/Development/aviam/"]
+  path = ~/.gitconfig-aviam
+
 [init]
   defaultBranch = main
 
@@ -44,8 +48,20 @@
 
 [core]
   excludesfile = ~/.gitignore_global
-  editor       = vim
+  editor       = nvim
   whitespace   = cr-at-eol
+  pager        = delta
+
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  navigate     = true
+  line-numbers = true
+  hyperlinks   = false
+
+[merge]
+  conflictstyle = zdiff3
 
 [apply]
   whitespace = nowarn

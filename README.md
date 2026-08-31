@@ -1,8 +1,11 @@
 # dotfiles
 
-Personal macOS setup for Vim, Git and zsh. Forked from
-[nikolalsvk/dotfiles](https://github.com/nikolalsvk/dotfiles) and trimmed down
-to what I actually use.
+Terminal-only development setup for macOS: **Neovim + tmux + Claude Code**
+instead of VS Code. Tuned for our stack — Next.js/React 19/TypeScript with
+pnpm, Vitest and Playwright; Python with PDM.
+
+Forked from [nikolalsvk/dotfiles](https://github.com/nikolalsvk/dotfiles),
+by now almost entirely rewritten.
 
 ## Install
 
@@ -13,46 +16,72 @@ cd ~/Development/bnize/dotfiles && ./install.sh
 
 `install.sh` is idempotent. It
 
-- installs `zsh`, `ripgrep` and `fzf` via Homebrew if missing,
+- installs `zsh`, `ripgrep`, `fzf`, `neovim`, `tmux`, `git-delta`, `lazygit`,
+  `gh` and `zoxide` via Homebrew if missing,
 - installs [oh-my-zsh](https://ohmyz.sh) and the
   [honukai](https://github.com/oskarkrawczyk/honukai-iterm-zsh) theme,
-- installs [vim-plug](https://github.com/junegunn/vim-plug),
-- symlinks `.vimrc`, `.gitconfig`, `.gitignore_global` and `.zsh-aliases`
-  into `$HOME` (existing files are moved to `<file>.bak`),
-- makes sure `~/.zshrc` sources `~/.zsh-aliases`,
-- runs `:PlugInstall`.
+- symlinks every config file into `$HOME` (existing files are moved to
+  `<file>.bak`) — including `~/.config/nvim` and `~/.claude`,
+- makes sure `~/.zshrc` sources `~/.zsh-aliases` and `~/.zsh-tools`,
+- installs Neovim plugins (lazy.nvim), Treesitter parsers and language
+  servers (Mason).
 
-Because the files are symlinked, edits in this repo take effect immediately.
+Because everything is symlinked, edits in this repo take effect immediately.
 
-For matching terminal colours, import
-[honukai.itermcolors](https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.itermcolors)
-in iTerm2 → Profiles → Colors.
+## Daily workflow
+
+```bash
+dev ~/Development/aviam/aviam-billing
+```
+
+opens (or re-attaches) a tmux session named after the repo: Neovim on the
+left, Claude Code on the right, a second window with a plain shell. tmux
+prefix is `Ctrl-a`; `|` / `-` split, `h j k l` move between panes.
+
+Claude edits files on disk; Neovim reloads them automatically (`autoread` +
+tmux `focus-events`). Review Claude's changes with `<leader>gd` (Diffview) or
+`lg` (lazygit); `git diff` uses delta.
 
 ## What's inside
 
-| File | Purpose |
+| Path | Purpose |
 |---|---|
-| `.vimrc` | Vim config: vim-plug, CoC (tsserver, solargraph, json, prettier/eslint when present), fzf, Rails/test helpers, Copilot. Leader is `<Space>`. |
-| `.gitconfig` | Git aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), rebase-on-pull, `push.default=current`, macOS keychain credentials. |
-| `.gitignore_global` | Ignore rules that apply to every repo (`.DS_Store`, editor files, …). |
-| `.zsh-aliases` | Rails, git, docker/kubectl shortcuts, `kill_port <port>`, fzf `cd` preview. |
-| `skeletons/` | File templates that Vim loads into new `*.tsx`, `*.test.tsx`, `*.sh`, `*.html` and blog-post `*.md` files. |
-| `pre-commit-hook.ruby-project` | Rubocop pre-commit hook for Ruby projects. Not installed automatically – copy it to `.git/hooks/pre-commit` in the project that needs it. |
+| `nvim/init.lua` | Neovim: lazy.nvim, Treesitter, LSP via Mason (ts_ls, eslint, basedpyright, json, html, css, tailwind, lua, bash, yaml), blink.cmp completion, conform (Prettier/ruff/stylua on save), organize-imports + eslint-fix on save for TS, fzf-lua, gitsigns/fugitive/diffview, vim-test (Vitest/pytest), oil.nvim. |
+| `.tmux.conf` | Prefix `Ctrl-a`, vi keys, mouse, focus-events, path-preserving splits. |
+| `.zsh-tools` | `EDITOR=nvim`, fzf + zoxide shell integration, the `dev` function. |
+| `.zsh-aliases` | pnpm shortcuts (`pd`, `pt`, `pv`, …), `g`, `lg`, `dc`, `k`, `kill_port <port>`. |
+| `.gitconfig` | Aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), delta pager, zdiff3 conflicts, rebase-on-pull, osxkeychain. Repos under `~/Development/aviam/` get the work e-mail via `includeIf` → `.gitconfig-aviam`. |
+| `.gitignore_global` | Ignore rules for every repo. |
+| `claude/CLAUDE.md` | Global Claude Code rules shared by all repos (TDD, TS/React rules, code limits). Repo `AGENTS.md` files add specifics. |
+| `claude/settings.json` | Claude Code user settings: permission allow/deny list and the hooks below. |
+| `claude/hooks/guard-bash.sh` | PreToolUse: blocks `db:push`/`db:reset`/`db:seed`/`migrate:apply`, prisma/drizzle push & reset, destructive `psql`, `git --no-verify`. |
+| `claude/hooks/format-file.sh` | PostToolUse: runs the project's Prettier (or ruff) on every file Claude edits. |
+| `skeletons/` | Templates loaded into new `*.tsx`, `*.test.tsx`, `*.sh`, `*.html` and blog-post `*.md` files. |
 
-## Vim cheat sheet
+## Neovim cheat sheet
+
+Leader is `<Space>`.
 
 | Keys | Action |
 |---|---|
-| `<C-p>` / `<C-g>` | fzf: git files / ripgrep content |
-| `<leader>a` / `<leader>A` | `:Ack!` search / search word under cursor |
-| `<leader>l` | buffer list |
-| `<leader>s` / `<leader>v` | open alternate (test) file / in vertical split |
-| `<leader>;` / `<leader>'` | run nearest test / test file |
-| `<leader>g` | git blame |
+| `<C-p>` / `<C-g>` | fzf: git files / live grep |
+| `<leader>a` / `<leader>A` | grep prompt / grep word under cursor |
+| `<leader>l` | buffers |
+| `<leader>d` / `<leader>D` | diagnostics: file / workspace |
+| `-` or `<leader>e` | file explorer (oil) |
+| `gd` `gy` `gi` `gr` `K` | definition / type / implementation / references / hover |
+| `<leader>rn` | rename symbol |
+| `<leader>c` / `<leader>qf` / `<leader>o` | code action / quick fix / organize imports |
+| `<leader>f` | format (also runs on save; `:FormatToggle` to pause) |
+| `<leader>;` / `<leader>'` / `<leader>t` | test nearest / file / last (Vitest, pytest) |
+| `<leader>g` / `<leader>gs` / `<leader>gd` / `<leader>gh` / `<leader>gb` | blame / status / diff working tree / file history / open on GitHub |
+| `<leader>\` / `<leader>/` | vertical / horizontal split; `<C-h/j/k/l>` move |
 | `<leader>w` / `<leader>q` / `<leader>x` | save / quit / save & quit |
-| `<leader>1` / `<leader>2` | reload `.vimrc` + `:PlugInstall` / edit `.vimrc` |
-| `gd` `gy` `gi` `gr` | CoC go to definition / type / implementation / references |
-| `<leader>c` / `<leader>qf` / `<leader>f` | CoC code action / quick fix / Prettier format |
+| `<leader>1` / `<leader>2` | sync plugins / edit config |
+| `<leader>tn` | toggle relative numbers |
+| `<Esc><Esc>` | leave terminal insert mode |
+
+`:Mason` manages language servers, `:Lazy` plugins, `:checkhealth` diagnoses.
 
 ## License
 

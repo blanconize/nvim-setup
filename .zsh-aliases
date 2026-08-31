@@ -1,20 +1,23 @@
-# Rails
-alias be="bundle exec"
-alias bec="bundle exec rails c"
-alias ber="bundle exec rails s"
-alias s="spring"
-alias precompile="bundle exec rake assets:precompile"
-alias bem="bundle exec rake db:migrate"
+# pnpm — the only package manager in our repos
+alias p="pnpm"
+alias pd="pnpm dev"
+alias pt="pnpm test"
+alias ptw="pnpm test:watch"
+alias pl="pnpm lint"
+alias ptc="pnpm typecheck"
+alias pb="pnpm build"
+alias pv="pnpm verify"
 
 # Git
 alias g="git"
+alias lg="lazygit"
 
 # Docker / Kubernetes
 alias dc="docker compose"
 alias k="kubectl"
 
-# JS
-alias cy="yarn cy:open"
+# Playwright
+alias cy="pnpm test:e2e"
 
 # Utility
 alias hg='history | grep'
