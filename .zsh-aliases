@@ -1,0 +1,41 @@
+# Rails
+alias be="bundle exec"
+alias bec="bundle exec rails c"
+alias ber="bundle exec rails s"
+alias s="spring"
+alias precompile="bundle exec rake assets:precompile"
+alias bem="bundle exec rake db:migrate"
+
+# Git
+alias g="git"
+
+# Docker
+alias dc="docker-compose"
+alias k="kubectl"
+
+# JS
+alias cy="yarn cy:open"
+
+# Utility
+alias hg='history | grep'
+
+# Kill a process on a specified port
+kill_port() {
+  if [ -n "$1" ]
+  then
+    lsof -ti :"$1" | xargs kill -9
+  else
+    echo "Pass in the port number."
+  fi
+}
+
+# Customize how fzf handles certain commands
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf "$@" --preview 'tree -C {} | head -200' ;;
+    *)            fzf "$@" ;;
+  esac
+}

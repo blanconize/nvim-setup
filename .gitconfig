@@ -1,0 +1,69 @@
+[user]
+  name  = Matti 
+  email = mw@bnize.com
+
+[credential]
+  helper = GIT_CREDENTIAL_HELPER
+
+[alias]
+  a    = add
+  all  = add -A
+  st   = status -sb
+  ci   = commit -m
+  ca   = commit --amend
+  br   = branch
+  bd   = branch -D
+  co   = checkout
+  cb   = checkout -b
+  df   = diff
+  dfc  = diff --cached
+  lg   = log --pretty=format:'%C(yellow)%h%Creset %Cgreen(%><(12)%cr%><|(12))%Creset - %s %C(blue)<%an>%Creset'
+  pl   = pull
+  ps   = push
+  psf  = push --force-with-lease
+  undo = reset --soft HEAD^
+  f    = fetch
+  sta  = stash
+  stap = stash apply
+  uall = reset .
+  rbm  = pull --rebase origin master
+  rbc  = rebase --continue
+  rbs  = rebase --skip
+  rba  = rebase --abort
+  cln  = !git branch | grep -v 'master' | xargs git branch -D
+
+[color]
+  diff   = auto
+  status = auto
+  branch = auto
+  ui     = true
+
+[core]
+  excludesfile = /Users/nikolalsvk/.gitignore_global
+  editor       = vim
+  whitespace   = cr-at-eol
+
+[apply]
+  whitespace = nowarn
+
+[mergetool]
+  keepBackup = false
+
+[difftool]
+  prompt = false
+
+[help]
+  autocorrect = 1
+
+[pull]
+  default = current
+  rebase = true
+
+[push]
+  default = current
+
+[commit]
+  gpgsign = false 
+
+[diff]
+  colorMoved = default
