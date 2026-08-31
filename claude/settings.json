@@ -60,7 +60,6 @@
       "Bash(pnpm why:*)",
       "Bash(pnpm ls:*)",
       "Bash(pnpm outdated:*)",
-      "Bash(pdm run test:*)",
       "Bash(pdm run test-unit:*)",
       "Bash(pdm run check-syntax:*)",
       "Bash(git status:*)",
@@ -98,7 +97,11 @@
       "WebFetch(domain:tailwindcss.com)",
       "WebFetch(domain:zod.dev)",
       "WebFetch(domain:github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pdm run pytest:*)",
+      "Bash(pdm run test-cov:*)",
+      "Bash(npm view:*)",
+      "Bash(pnpm view:*)"
     ],
     "deny": [
       "Read(**/.env)",
