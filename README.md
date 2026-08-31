@@ -105,6 +105,7 @@ Leader is `<Space>`.
 | `<leader>ki` / `<leader>kt` | Claude connection status / start Tailwind LSP |
 | `<leader>;` / `<leader>'` / `<leader>t` | test nearest / file / last (Vitest, pytest) |
 | `<leader>g` / `<leader>gs` / `<leader>gd` / `<leader>gh` / `<leader>gb` | blame / status / diff working tree / file history / open on GitHub |
+| `]h` / `[h` / `<leader>hp` / `<leader>hr` | next / previous changed hunk / preview it / revert it |
 | `<leader>\` / `<leader>/` | vertical / horizontal split; `<C-h/j/k/l>` move |
 | `<leader>w` / `<leader>q` / `<leader>x` | save / quit / save & quit |
 | `<leader>1` / `<leader>2` | sync plugins / edit config |

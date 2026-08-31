@@ -177,7 +177,21 @@ require("lazy").setup({
   { "ibhagwan/fzf-lua", opts = { winopts = { height = 0.9, width = 0.9 } } },
 
   -- Git
-  { "lewis6991/gitsigns.nvim", opts = { current_line_blame = false } },
+  { "lewis6991/gitsigns.nvim",
+    opts = {
+      current_line_blame = false,
+      on_attach = function(bufnr)
+        local gs = require("gitsigns")
+        local map = function(keys, fn, desc)
+          vim.keymap.set("n", keys, fn, { buffer = bufnr, silent = true, desc = desc })
+        end
+        map("]h", function() gs.nav_hunk("next") end, "Next changed hunk")
+        map("[h", function() gs.nav_hunk("prev") end, "Previous changed hunk")
+        map("<leader>hp", gs.preview_hunk, "Preview hunk (old vs new)")
+        map("<leader>hr", gs.reset_hunk, "Revert this hunk")
+        map("<leader>hs", gs.stage_hunk, "Stage this hunk")
+      end,
+    } },
   { "tpope/vim-fugitive" },
   { "tpope/vim-rhubarb" },
   { "sindrets/diffview.nvim", cmd = { "DiffviewOpen", "DiffviewFileHistory" } },
