@@ -15,24 +15,26 @@ fi
 # zoxide: `z <fuzzy dir>` jumps to recently used directories
 command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 
-# dev <dir>: tmux session per project — nvim left, claude right, 2nd window shell
+# dev <dir>: tmux session per project — nvim left, claude right, 2nd window shell.
+# Uses window/pane ids: name targets like "session:edit" misparse in tmux 3.7.
 dev() {
   local dir="${1:-.}"
   dir="$(cd "$dir" 2>/dev/null && pwd)" || { echo "no such dir: $1"; return 1; }
   local name
   name="$(basename "$dir" | tr '.' '_')"
-  if tmux has-session -t "$name" 2>/dev/null; then
-    tmux attach -t "$name"
+  if tmux has-session -t "=$name" 2>/dev/null; then
+    tmux attach -t "=$name"
     return
   fi
-  tmux new-session -d -s "$name" -c "$dir" -n edit
-  tmux send-keys -t "$name:edit" 'nvim' C-m
-  tmux split-window -h -t "$name:edit" -c "$dir" -l 45%
-  tmux send-keys -t "$name:edit.2" 'claude --ide' C-m
-  tmux new-window -t "$name" -n shell -c "$dir"
-  tmux select-window -t "$name:edit"
-  tmux select-pane -t "$name:edit.1"
-  tmux attach -t "$name"
+  local edit_win claude_pane
+  edit_win="$(tmux new-session -d -s "$name" -c "$dir" -n edit -P -F '#{window_id}')"
+  tmux send-keys -t "$edit_win" 'nvim' C-m
+  claude_pane="$(tmux split-window -h -t "$edit_win" -c "$dir" -l 45% -P -F '#{pane_id}')"
+  tmux send-keys -t "$claude_pane" 'claude --ide' C-m
+  tmux new-window -d -t "=$name" -n shell -c "$dir"
+  tmux select-window -t "$edit_win"
+  tmux select-pane -t "$edit_win" -L
+  tmux attach -t "=$name"
 }
 
 # claude: one session per repo. Warns when a session already runs in this

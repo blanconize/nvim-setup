@@ -67,6 +67,7 @@ ensure_tool delta git-delta
 ensure_tool lazygit lazygit
 ensure_tool gh gh
 ensure_tool zoxide zoxide
+ensure_tool duti duti   # sets the default terminal app
 
 info "Checking for oh-my-zsh..."
 if [ -d "$HOME/.oh-my-zsh" ]; then
@@ -83,6 +84,17 @@ else
   warn "  installing honukai theme"
   curl -fsSL --create-dirs -o "$ZSH_CUSTOM/themes/honukai.zsh-theme" \
     https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.zsh-theme
+fi
+
+info "Making iTerm2 the default terminal (.command/.tool files, x-man-page: links)..."
+if [ -d "/Applications/iTerm.app" ]; then
+  duti -s com.googlecode.iterm2 com.apple.terminal.shell-script all
+  duti -s com.googlecode.iterm2 .command all
+  duti -s com.googlecode.iterm2 .tool all
+  duti -s com.googlecode.iterm2 x-man-page
+  ok "  .command files now open in $(duti -x command | head -1)"
+else
+  warn "  iTerm2 not found – install with: brew install --cask iterm2"
 fi
 
 info "Linking config files..."
