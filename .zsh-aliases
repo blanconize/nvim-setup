@@ -9,8 +9,8 @@ alias bem="bundle exec rake db:migrate"
 # Git
 alias g="git"
 
-# Docker
-alias dc="docker-compose"
+# Docker / Kubernetes
+alias dc="docker compose"
 alias k="kubectl"
 
 # JS

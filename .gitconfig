@@ -1,9 +1,12 @@
 [user]
-  name  = Matti 
+  name  = Matthias Weiss
   email = mw@bnize.com
 
 [credential]
-  helper = GIT_CREDENTIAL_HELPER
+  helper = osxkeychain
+
+[init]
+  defaultBranch = main
 
 [alias]
   a    = add
@@ -26,11 +29,12 @@
   sta  = stash
   stap = stash apply
   uall = reset .
-  rbm  = pull --rebase origin master
+  rbm  = pull --rebase origin main
   rbc  = rebase --continue
   rbs  = rebase --skip
   rba  = rebase --abort
-  cln  = !git branch | grep -v 'master' | xargs git branch -D
+  # Delete every local branch except main/master and the current one
+  cln  = !git branch | grep -vE '^\\*|^\\s*(main|master)$' | xargs -r git branch -D
 
 [color]
   diff   = auto
@@ -39,7 +43,7 @@
   ui     = true
 
 [core]
-  excludesfile = /Users/nikolalsvk/.gitignore_global
+  excludesfile = ~/.gitignore_global
   editor       = vim
   whitespace   = cr-at-eol
 
@@ -61,9 +65,10 @@
 
 [push]
   default = current
+  autoSetupRemote = true
 
 [commit]
-  gpgsign = false 
+  gpgsign = false
 
 [diff]
   colorMoved = default

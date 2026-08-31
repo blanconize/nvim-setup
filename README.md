@@ -1,56 +1,59 @@
-<p align="center">
-  <h1 align="center">👋 Welcome to my dotfiles 📚</h1>
+# dotfiles
 
-  <h2 align="center">👀 Here is how your terminal could look like 🐅</h2>
-  <p align="center">
-   <img alt="Nikola's terminal in the wild" src="https://raw.githubusercontent.com/nikolalsvk/dotfiles/master/dotfiles-in-the-wild.png" />
-  </p>
+Personal macOS setup for Vim, Git and zsh. Forked from
+[nikolalsvk/dotfiles](https://github.com/nikolalsvk/dotfiles) and trimmed down
+to what I actually use.
 
-  <p align="center">
-    <img alt="Vim logo" src="https://vim.sexy/img/Vimlogo.svg" style="height: 150px; width: auto;" />
-  </p>
-</p>
+## Install
 
-### :arrow_down: Installation:
+```bash
+git clone <this repo> ~/Development/bnize/dotfiles
+cd ~/Development/bnize/dotfiles && ./install.sh
+```
 
-Get started quickly:
+`install.sh` is idempotent. It
 
-1. Clone the repo
+- installs `zsh`, `ripgrep` and `fzf` via Homebrew if missing,
+- installs [oh-my-zsh](https://ohmyz.sh) and the
+  [honukai](https://github.com/oskarkrawczyk/honukai-iterm-zsh) theme,
+- installs [vim-plug](https://github.com/junegunn/vim-plug),
+- symlinks `.vimrc`, `.gitconfig`, `.gitignore_global` and `.zsh-aliases`
+  into `$HOME` (existing files are moved to `<file>.bak`),
+- makes sure `~/.zshrc` sources `~/.zsh-aliases`,
+- runs `:PlugInstall`.
 
-   ```bash
-   git clone https://github.com/nikolalsvk/dotfiles.git
-   ```
+Because the files are symlinked, edits in this repo take effect immediately.
 
-2. Get into the repo and run the install script
+For matching terminal colours, import
+[honukai.itermcolors](https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.itermcolors)
+in iTerm2 → Profiles → Colors.
 
-   ```bash
-   cd dotfiles && ./install.rb
-   ```
+## What's inside
 
-   Or, you can do it via zx using:
+| File | Purpose |
+|---|---|
+| `.vimrc` | Vim config: vim-plug, CoC (tsserver, solargraph, json, prettier/eslint when present), fzf, Rails/test helpers, Copilot. Leader is `<Space>`. |
+| `.gitconfig` | Git aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), rebase-on-pull, `push.default=current`, macOS keychain credentials. |
+| `.gitignore_global` | Ignore rules that apply to every repo (`.DS_Store`, editor files, …). |
+| `.zsh-aliases` | Rails, git, docker/kubectl shortcuts, `kill_port <port>`, fzf `cd` preview. |
+| `skeletons/` | File templates that Vim loads into new `*.tsx`, `*.test.tsx`, `*.sh`, `*.html` and blog-post `*.md` files. |
+| `pre-commit-hook.ruby-project` | Rubocop pre-commit hook for Ruby projects. Not installed automatically – copy it to `.git/hooks/pre-commit` in the project that needs it. |
 
-   ```bash
-   npx zx install.mjs
-   ```
+## Vim cheat sheet
 
-3. Add theme colors to iTerm (optional)
+| Keys | Action |
+|---|---|
+| `<C-p>` / `<C-g>` | fzf: git files / ripgrep content |
+| `<leader>a` / `<leader>A` | `:Ack!` search / search word under cursor |
+| `<leader>l` | buffer list |
+| `<leader>s` / `<leader>v` | open alternate (test) file / in vertical split |
+| `<leader>;` / `<leader>'` | run nearest test / test file |
+| `<leader>g` | git blame |
+| `<leader>w` / `<leader>q` / `<leader>x` | save / quit / save & quit |
+| `<leader>1` / `<leader>2` | reload `.vimrc` + `:PlugInstall` / edit `.vimrc` |
+| `gd` `gy` `gi` `gr` | CoC go to definition / type / implementation / references |
+| `<leader>c` / `<leader>qf` / `<leader>f` | CoC code action / quick fix / Prettier format |
 
-   I use [Honukai theme](https://github.com/oskarkrawczyk/honukai-iterm-zsh) if
-   you're interested in having the similar visual appearance.
+## License
 
-   You need to download [honukai.itermcolors](https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.itermcolors)
-   to Colors tab in iTerm to achieve the same colors.
-
-That is it. If you find something broken or worth fixing, create an issue and /
-or a pull request and let's make it better.
-
-### :mag: It includes:
-
- - `.vimrc`, a config file for Vim file editor
- - `.gitconfig`, a config file for Git CLI
- - `.zsh-aliases`, a file that contains aliases for the Z shell
- - `install.rb`, bash script for installing those files
-
-:warning: Use it at your peril. :warning:
-
-:radio: Pull request are (very) welcome.
+MIT – see [LICENSE](LICENSE).

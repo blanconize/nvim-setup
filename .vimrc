@@ -19,6 +19,7 @@ Plug 'leafgarland/typescript-vim' " TypeScript syntax
 Plug 'maxmellon/vim-jsx-pretty'   " JS and JSX syntax
 Plug 'jparise/vim-graphql'        " GraphQL syntax
 Plug 'styled-components/vim-styled-components'
+Plug 'posva/vim-vue'              " Vue syntax
 
 Plug 'vim-airline/vim-airline'    " Vim powerline
 
@@ -28,6 +29,8 @@ Plug 'junegunn/fzf.vim'           " Set up fzf and fzf.vim
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 
 Plug 'psliwka/vim-smoothie'       " Smooth scrolling
+
+Plug 'github/copilot.vim'         " Copilot
 
 " All of your Plugins must be added before the following line
 call plug#end()              " required
@@ -91,8 +94,9 @@ set tabstop=2
 set softtabstop=2 " Number of spaces a tab counts when editing
 set expandtab
 
-" Delete empty space from the end of lines on every save
-autocmd BufWritePre * :%s/\s\+$//e
+" Delete empty space from the end of lines on every save (except Markdown,
+" where two trailing spaces are a hard line break)
+autocmd BufWritePre * if &filetype !=# 'markdown' | :%s/\s\+$//e | endif
 
 " Set default encoding to utf-8
 set encoding=utf-8
@@ -133,6 +137,8 @@ nnoremap <silent><leader>v :AV<CR>
 nnoremap <silent><leader>\ :vs<CR>
 " Split screen
 nnoremap <silent><leader>/ :split<CR>
+" Git blame
+nnoremap <silent><leader>g :Git blame<CR>
 
 " Faster saving and exiting
 nnoremap <silent><leader>w :w!<CR>
@@ -165,6 +171,10 @@ nnoremap <c-h> <c-w>h
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
 nnoremap <c-l> <c-w>l
+
+" Faster replacing inside single and double quotes
+onoremap q i'
+onoremap Q i"
 
 " CoC extensions
 let g:coc_global_extensions = ['coc-solargraph', 'coc-tsserver', 'coc-json']
@@ -211,8 +221,10 @@ augroup END
 hi CocErrorFloat guifg=Magenta guibg=Magenta
 
 " Use templates https://vimtricks.com/p/automated-file-templates/
-autocmd BufNewFile *.test.tsx        0r ~/Documents/dotfiles/skeletons/react-typescript.test.tsx
-autocmd BufNewFile *\(test\)\@<!.tsx 0r ~/Documents/dotfiles/skeletons/react-typescript.tsx
-autocmd BufNewFile *content/blog*.md 0r ~/Documents/dotfiles/skeletons/blog-post.md
-autocmd BufNewFile *.sh              0r ~/Documents/dotfiles/skeletons/script.sh
-autocmd BufNewFile *.html            0r ~/Documents/dotfiles/skeletons/page.html
+" Paths are resolved relative to this file, so the repo can live anywhere.
+let s:skeletons = fnamemodify(resolve(expand('<sfile>:p')), ':h') . '/skeletons'
+execute 'autocmd BufNewFile *.test.tsx        0r ' . s:skeletons . '/react-typescript.test.tsx'
+execute 'autocmd BufNewFile *\(test\)\@<!.tsx 0r ' . s:skeletons . '/react-typescript.tsx'
+execute 'autocmd BufNewFile *content/blog*.md 0r ' . s:skeletons . '/blog-post.md'
+execute 'autocmd BufNewFile *.sh              0r ' . s:skeletons . '/script.sh'
+execute 'autocmd BufNewFile *.html            0r ' . s:skeletons . '/page.html'
