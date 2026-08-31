@@ -10,16 +10,25 @@ by now almost entirely rewritten.
 ## Install
 
 ```bash
-git clone <this repo> ~/Development/bnize/dotfiles
+git clone git@github.com:blanconize/nvim-setup.git ~/Development/bnize/dotfiles
 cd ~/Development/bnize/dotfiles && ./install.sh
 ```
 
-`install.sh` is idempotent. It
+The only prerequisite is a Mac with `git` (Xcode Command Line Tools).
+`install.sh` is idempotent and pins nothing — every installer fetches the
+current version. It
 
-- installs `zsh`, `ripgrep`, `fzf`, `neovim`, `tmux`, `git-delta`, `lazygit`,
-  `gh` and `zoxide` via Homebrew if missing,
-- installs [oh-my-zsh](https://ohmyz.sh) and the
-  [honukai](https://github.com/oskarkrawczyk/honukai-iterm-zsh) theme,
+- installs Homebrew if missing, then `zsh`, `ripgrep`, `fzf`, `neovim`,
+  `tmux`, `git-delta`, `lazygit`, `gh`, `zoxide`, `jq`, `node`, `pnpm`,
+  `pdm`,
+- installs iTerm2 and `JetBrainsMono Nerd Font` (casks),
+- installs [oh-my-zsh](https://ohmyz.sh), the
+  [honukai](https://github.com/oskarkrawczyk/honukai-iterm-zsh) theme and
+  sets `ZSH_THEME` in `~/.zshrc`,
+- installs Claude Code via the native installer (`~/.local/bin/claude`,
+  self-updating),
+- makes iTerm2 the default terminal and generates the iTerm2 profile
+  (see below),
 - symlinks every config file into `$HOME` (existing files are moved to
   `<file>.bak`) — including `~/.config/nvim` and `~/.claude`,
 - makes sure `~/.zshrc` sources `~/.zsh-aliases` and `~/.zsh-tools`,
@@ -28,15 +37,23 @@ cd ~/Development/bnize/dotfiles && ./install.sh
 
 Because everything is symlinked, edits in this repo take effect immediately.
 
+Afterwards, once per machine: `gh auth login`, and run `claude` once to log
+in (it installs the plugins listed in `claude/settings.json` on first start).
+Not synced on purpose: `~/.claude/projects/` (sessions, auto-memory) and
+`settings.local.json`. Git identity lives in `.gitconfig` /
+`.gitconfig-aviam` — change those if this is not your machine.
+
 ### Terminal app
 
 Use a true-colour terminal — Apple Terminal is not one, and the Neovim
-theme needs 24-bit colour. iTerm2 (`brew install --cask iterm2`) with the
-colour preset in [`iterm2/honukai.itermcolors`](iterm2/honukai.itermcolors):
-`open iterm2/honukai.itermcolors` imports it, then pick it under
-Settings → Profiles → Colors → Color Presets. Font: `JetBrainsMono Nerd
-Font` (`brew install --cask font-jetbrains-mono-nerd-font`) so plugin icons
-render. Make it the default via menu **iTerm2 → Make iTerm2 Default Term**.
+theme needs 24-bit colour. [`iterm2/profile.sh`](iterm2/profile.sh)
+(run by `install.sh`) turns
+[`iterm2/honukai.itermcolors`](iterm2/honukai.itermcolors) into an iTerm2
+*dynamic profile* named `honukai` with the Nerd Font, and makes it the
+default profile. iTerm2 picks the profile up live; setting it as default
+only works while iTerm2 is closed — otherwise pick it under Settings →
+Profiles → Other Actions → Set as Default. Colour changes go into the
+`.itermcolors` file, then re-run `install.sh`.
 
 ## Daily workflow
 

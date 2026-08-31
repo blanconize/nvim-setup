@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 #
-# Installs these dotfiles on macOS: tooling via Homebrew, oh-my-zsh + theme,
-# Neovim plugins/LSPs, and symlinks for every config file (including
-# ~/.claude). Safe to re-run; existing real files are backed up as <file>.bak.
+# Installs these dotfiles on macOS: Homebrew + tooling, iTerm2 + Nerd Font,
+# oh-my-zsh + theme, Claude Code, Neovim plugins/LSPs, and symlinks for every
+# config file (including ~/.claude). Nothing is pinned – every installer
+# fetches the current version. Safe to re-run; existing real files are backed
+# up as <file>.bak.
 
 set -euo pipefail
 
@@ -13,11 +15,25 @@ info()  { printf '\033[36m%s\033[0m\n' "$1"; }
 ok()    { printf '\033[32m%s\033[0m\n' "$1"; }
 warn()  { printf '\033[31m%s\033[0m\n' "$1"; }
 
-need_brew() {
+[ "$(uname -s)" = "Darwin" ] || { warn "This installer targets macOS (Homebrew, iTerm2, Keychain)."; exit 1; }
+
+ensure_brew() {
+  info "Checking for Homebrew..."
   if ! command -v brew >/dev/null 2>&1; then
-    warn "Homebrew is required to install $1 – see https://brew.sh"
-    exit 1
+    for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      [ -x "$b" ] && eval "$("$b" shellenv)" && break
+    done
   fi
+  if command -v brew >/dev/null 2>&1; then
+    ok "  Homebrew is already installed"
+  else
+    warn "  installing Homebrew"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      [ -x "$b" ] && eval "$("$b" shellenv)" && break
+    done
+  fi
+  ensure_line "$HOME/.zprofile" 'brew shellenv' "eval \"\$($(command -v brew) shellenv)\""
 }
 
 ensure_tool() { # ensure_tool <binary> <brew formula>
@@ -26,8 +42,17 @@ ensure_tool() { # ensure_tool <binary> <brew formula>
     ok "  $1 is already installed"
   else
     warn "  installing $1"
-    need_brew "$1"
     brew install "$2"
+  fi
+}
+
+ensure_cask() { # ensure_cask <brew cask> <path or file that proves it is installed>
+  info "Checking for $1..."
+  if [ -e "$2" ] || brew list --cask "$1" >/dev/null 2>&1; then
+    ok "  $1 is already installed"
+  else
+    warn "  installing $1"
+    brew install --cask "$1"
   fi
 }
 
@@ -57,6 +82,22 @@ ensure_line() { # ensure_line <file> <grep pattern> <line to append>
   fi
 }
 
+set_zsh_theme() { # set_zsh_theme <theme name>: replaces or appends ZSH_THEME in ~/.zshrc
+  local rc="$HOME/.zshrc"
+  touch "$rc"
+  if grep -q "^ZSH_THEME=\"$1\"" "$rc"; then
+    ok "  ZSH_THEME is already $1"
+  elif grep -q '^ZSH_THEME=' "$rc"; then
+    sed -i '' "s/^ZSH_THEME=.*/ZSH_THEME=\"$1\"/" "$rc"
+    ok "  ZSH_THEME set to $1"
+  else
+    printf '\nZSH_THEME="%s"\n' "$1" >> "$rc"
+    ok "  ZSH_THEME=$1 added to $rc"
+  fi
+}
+
+ensure_brew
+
 ensure_tool zsh zsh
 ensure_tool rg ripgrep
 ensure_tool fzf fzf
@@ -67,7 +108,14 @@ ensure_tool delta git-delta
 ensure_tool lazygit lazygit
 ensure_tool gh gh
 ensure_tool zoxide zoxide
+ensure_tool jq jq
 ensure_tool duti duti   # sets the default terminal app
+ensure_tool node node   # Mason installs ts_ls/eslint_d/prettier via npm
+ensure_tool pnpm pnpm
+ensure_tool pdm pdm
+
+ensure_cask iterm2 /Applications/iTerm.app
+ensure_cask font-jetbrains-mono-nerd-font "$HOME/Library/Fonts/JetBrainsMonoNerdFontMono-Regular.ttf"
 
 info "Checking for oh-my-zsh..."
 if [ -d "$HOME/.oh-my-zsh" ]; then
@@ -85,17 +133,26 @@ else
   curl -fsSL --create-dirs -o "$ZSH_CUSTOM/themes/honukai.zsh-theme" \
     https://raw.githubusercontent.com/oskarkrawczyk/honukai-iterm/master/honukai.zsh-theme
 fi
+set_zsh_theme honukai
+
+info "Checking for Claude Code..."
+export PATH="$HOME/.local/bin:$PATH"
+if command -v claude >/dev/null 2>&1; then
+  ok "  Claude Code $(claude --version 2>/dev/null | head -1) is already installed"
+else
+  warn "  installing Claude Code (native installer -> ~/.local/bin)"
+  curl -fsSL https://claude.ai/install.sh | bash
+fi
 
 info "Making iTerm2 the default terminal (.command/.tool files, x-man-page: links)..."
-if [ -d "/Applications/iTerm.app" ]; then
-  duti -s com.googlecode.iterm2 com.apple.terminal.shell-script all
-  duti -s com.googlecode.iterm2 .command all
-  duti -s com.googlecode.iterm2 .tool all
-  duti -s com.googlecode.iterm2 x-man-page
-  ok "  .command files now open in $(duti -x command | head -1)"
-else
-  warn "  iTerm2 not found – install with: brew install --cask iterm2"
-fi
+duti -s com.googlecode.iterm2 com.apple.terminal.shell-script all
+duti -s com.googlecode.iterm2 .command all
+duti -s com.googlecode.iterm2 .tool all
+duti -s com.googlecode.iterm2 x-man-page
+ok "  .command files now open in $(duti -x command | head -1)"
+
+info "Installing iTerm2 profile (colours + font)..."
+"$DOTFILES/iterm2/profile.sh"
 
 info "Linking config files..."
 link .gitconfig        "$HOME/.gitconfig"
@@ -131,4 +188,4 @@ else
 fi
 ok "  done"
 
-ok "All set. Open a new shell (or run: source ~/.zshrc), then 'dev <repo>' to start a tmux session."
+ok "All set. Open a new iTerm2 window, run 'gh auth login' and 'claude' once to log in, then 'dev <repo>' to start a tmux session."
