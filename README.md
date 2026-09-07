@@ -41,6 +41,10 @@ Because everything is symlinked, edits in this repo take effect immediately.
 
 Afterwards, once per machine: `gh auth login`, and run `claude` once to log
 in (it installs the plugins listed in `claude/settings.json` on first start).
+Put machine-local secrets in `~/.zsh-secrets` (`chmod 600`, sourced by
+`.zsh-tools`) — in particular `export CONTEXT7_API_KEY="…"` so the Context7
+MCP plugin (current framework docs) runs on our plan instead of the anonymous
+rate limit; restart Claude Code after setting it.
 Not synced on purpose: `~/.claude/projects/` (sessions, auto-memory) and
 `settings.local.json`. Git identity lives in `.gitconfig` /
 `.gitconfig-aviam` — change those if this is not your machine.

@@ -3,7 +3,7 @@
 Repo-level `AGENTS.md`/`CLAUDE.md` add project specifics and override these.
 
 ## Documentation — Context7 MCP (always current)
-- The Context7 MCP server is enabled globally (plugin `context7@claude-plugins-official`; tools `mcp__context7__resolve-library-id` → `mcp__context7__query-docs`). It serves current, version-specific docs and code examples for practically every library, framework, CLI and cloud service.
+- The Context7 MCP server is enabled globally (plugin `context7@claude-plugins-official`, authenticated via `CONTEXT7_API_KEY` from `~/.zsh-secrets`; tools `mcp__context7__resolve-library-id` → `mcp__context7__query-docs`). It serves current, version-specific docs and code examples for practically every library, framework, CLI and cloud service.
 - Before writing code against any library API — even one you "know" (Next.js, React, Prisma, Tailwind, Auth.js, Strapi, Keycloak, Vitest, Zod, PDM …) — look it up: resolve the library, then query one concept per call (≤ 3 queries per question). Pick the version matching the repo's lockfile when offered.
 - Training data is stale by definition: when docs and memory disagree, the docs win. Prefer Context7 over web search for library docs. Before bumping a dependency, read its migration guide via Context7.
 - Each repo's `AGENTS.md` lists its primary libraries with verified Context7 IDs.
