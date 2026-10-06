@@ -11,9 +11,8 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-info()  { printf '\033[36m%s\033[0m\n' "$1"; }
-ok()    { printf '\033[32m%s\033[0m\n' "$1"; }
-warn()  { printf '\033[31m%s\033[0m\n' "$1"; }
+# shellcheck source=install/lib.sh
+source "$DOTFILES/install/lib.sh"
 
 [ "$(uname -s)" = "Darwin" ] || { warn "This installer targets macOS (Homebrew, iTerm2, Keychain)."; exit 1; }
 
@@ -53,46 +52,6 @@ ensure_cask() { # ensure_cask <brew cask> <path or file that proves it is instal
   else
     warn "  installing $1"
     brew install --cask "$1"
-  fi
-}
-
-link() { # link <repo path> <target>
-  local src="$DOTFILES/$1" dst="$2"
-  mkdir -p "$(dirname "$dst")"
-  if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
-    ok "  $dst already linked"
-    return
-  fi
-  if [ -e "$dst" ] || [ -L "$dst" ]; then
-    warn "  backing up $dst -> $dst.bak"
-    rm -rf "$dst.bak"
-    mv "$dst" "$dst.bak"
-  fi
-  ln -s "$src" "$dst"
-  ok "  linked $dst -> $src"
-}
-
-ensure_line() { # ensure_line <file> <grep pattern> <line to append>
-  touch "$1"
-  if grep -q "$2" "$1"; then
-    ok "  $1 already contains '$2'"
-  else
-    printf '\n%s\n' "$3" >> "$1"
-    ok "  added '$3' to $1"
-  fi
-}
-
-set_zsh_theme() { # set_zsh_theme <theme name>: replaces or appends ZSH_THEME in ~/.zshrc
-  local rc="$HOME/.zshrc"
-  touch "$rc"
-  if grep -q "^ZSH_THEME=\"$1\"" "$rc"; then
-    ok "  ZSH_THEME is already $1"
-  elif grep -q '^ZSH_THEME=' "$rc"; then
-    sed -i '' "s/^ZSH_THEME=.*/ZSH_THEME=\"$1\"/" "$rc"
-    ok "  ZSH_THEME set to $1"
-  else
-    printf '\nZSH_THEME="%s"\n' "$1" >> "$rc"
-    ok "  ZSH_THEME=$1 added to $rc"
   fi
 }
 
@@ -176,7 +135,6 @@ ensure_line "$HOME/.zshrc" 'zsh-tools'   'source ~/.zsh-tools'
 info "Installing Neovim plugins, parsers and language servers..."
 nvim --headless "+Lazy! sync" +qa
 nvim --headless -c 'lua require("nvim-treesitter").install(vim.g.ts_langs):wait(600000)' +qa
-MASON_PKGS="typescript-language-server eslint_d basedpyright json-lsp html-lsp css-lsp tailwindcss-language-server lua-language-server bash-language-server yaml-language-server stylua ruff prettier"
 missing=""
 for pkg in $MASON_PKGS; do
   [ -d "$HOME/.local/share/nvim/mason/packages/$pkg" ] || missing="$missing $pkg"
