@@ -2,8 +2,10 @@
   name  = Matthias Weiss
   email = mw@bnize.com
 
-[credential]
-  helper = osxkeychain
+# Credential helper differs per OS: install.sh links ~/.gitconfig-os to
+# .gitconfig-macos or .gitconfig-linux
+[include]
+  path = ~/.gitconfig-os
 
 # Work identity for everything under ~/Development/aviam/
 [includeIf "gitdir:~/Development/aviam/"]

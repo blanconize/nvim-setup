@@ -1,0 +1,3 @@
+# gh stores the token itself, so this works on servers without a keyring
+[credential]
+  helper = !gh auth git-credential

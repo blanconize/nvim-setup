@@ -57,6 +57,7 @@ link_configs() {
   info "Linking config files..."
   link .gitconfig        "$HOME/.gitconfig"
   link .gitconfig-aviam  "$HOME/.gitconfig-aviam"
+  link ".gitconfig-$OS"  "$HOME/.gitconfig-os"
   link .gitignore_global "$HOME/.gitignore_global"
   link .zsh-aliases      "$HOME/.zsh-aliases"
   link .zsh-tools        "$HOME/.zsh-tools"

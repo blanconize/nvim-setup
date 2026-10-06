@@ -51,4 +51,11 @@ check "keeps the rest of ~/.zshrc"     eq "$(wc -l < "$TMP/zshrc" | tr -d ' ')" 
 set_zsh_theme honukai "$TMP/emptyrc" >/dev/null
 check "appends ZSH_THEME when missing" grep -qx 'ZSH_THEME="honukai"' "$TMP/emptyrc"
 
+# --- git credential helper per OS
+# shellcheck disable=SC2088 # the literal ~ is what .gitconfig must contain
+check  ".gitconfig includes ~/.gitconfig-os" eq "$(git config -f "$ROOT/.gitconfig" include.path)" '~/.gitconfig-os'
+refute ".gitconfig no longer hardcodes osxkeychain" grep -q osxkeychain "$ROOT/.gitconfig"
+check  "macOS keeps the keychain helper" eq "$(git config -f "$ROOT/.gitconfig-macos" credential.helper)" osxkeychain
+check  "Linux uses gh as helper (works headless)" eq "$(git config -f "$ROOT/.gitconfig-linux" credential.helper)" '!gh auth git-credential'
+
 finish_tests
