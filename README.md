@@ -1,6 +1,6 @@
 # dotfiles
 
-Terminal-only development setup for macOS: **Neovim + tmux + Claude Code**
+Terminal-only development setup for macOS and Linux: **Neovim + tmux + Claude Code**
 instead of VS Code. Tuned for our stack — Next.js/React 19/TypeScript with
 pnpm, Vitest and Playwright; Python with PDM.
 
@@ -15,10 +15,13 @@ cd nvim-setup && ./install.sh
 ```
 
 Clone it wherever you like — the symlinks point at the clone, so the
-location does not matter, only that it stays put. The only prerequisite is
-a Mac with `git` (Xcode Command Line Tools).
+location does not matter, only that it stays put. Prerequisites: `git`
+(on a Mac: Xcode Command Line Tools), and on Linux `curl` plus `sudo`
+rights. Supported: macOS, and Linux distributions with **apt** (Debian,
+Ubuntu, Mint …), **dnf** (Fedora, RHEL family) or **pacman** (Arch family),
+on x86_64 or aarch64 — desktop, server and WSL2 alike.
 `install.sh` is idempotent and pins nothing — every installer fetches the
-current version. It
+current version. On macOS it
 
 - installs Homebrew if missing, then `zsh`, `ripgrep`, `fzf`, `neovim`,
   `tmux`, `git-delta`, `lazygit`, `gh`, `zoxide`, `jq`, `node`, `pnpm`,
@@ -36,6 +39,26 @@ current version. It
 - makes sure `~/.zshrc` sources `~/.zsh-aliases` and `~/.zsh-tools`,
 - installs Neovim plugins (lazy.nvim), Treesitter parsers and language
   servers (Mason).
+
+On Linux it instead
+
+- installs the basics with the native package manager (`sudo`): zsh, git,
+  ripgrep, tmux, jq, lsof, zoxide, a C compiler for Treesitter, python3,
+  and `gh` (on Debian/Ubuntu from GitHub's apt repository),
+- installs what distros ship too old or not at all from upstream into
+  `~/.local` (no root): Neovim ≥ 0.11, fzf ≥ 0.48, lazygit, delta,
+  tree-sitter, Node LTS (only if the distro's is < 20 or lacks npm), pnpm,
+  pdm — and puts `~/.local/bin` on the `PATH` via `~/.zshenv` and
+  `~/.profile`,
+- installs JetBrainsMono Nerd Font into `~/.local/share/fonts` only when it
+  runs inside a graphical session (not over ssh, not on WSL — there the
+  font belongs on the client),
+- makes zsh the login shell (`chsh`); log in again afterwards.
+
+Everything else (oh-my-zsh, theme, Claude Code, symlinks, Neovim tooling)
+is the same on both. Git credentials: `~/.gitconfig-os` links to
+`.gitconfig-macos` (keychain) or `.gitconfig-linux`
+(`gh auth git-credential`, works headless).
 
 Because everything is symlinked, edits in this repo take effect immediately.
 
@@ -60,6 +83,10 @@ default profile. iTerm2 picks the profile up live; setting it as default
 only works while iTerm2 is closed — otherwise pick it under Settings →
 Profiles → Other Actions → Set as Default. Colour changes go into the
 `.itermcolors` file, then re-run `install.sh`.
+
+On a Linux desktop pick any true-colour terminal (e.g. Ghostty, WezTerm,
+Kitty, GNOME Terminal) and set the font to *JetBrainsMono Nerd Font Mono*;
+the iTerm2 profile is macOS-only.
 
 ## Daily workflow
 
@@ -100,12 +127,14 @@ Quit the Claude desktop app and VS Code — together ~2.2 GB of Electron.
 | `.tmux.conf` | Prefix `Ctrl-a`, vi keys, mouse, focus-events, path-preserving splits. |
 | `.zsh-tools` | `EDITOR=nvim`, fzf + zoxide shell integration, the `dev` function. |
 | `.zsh-aliases` | pnpm shortcuts (`pd`, `pt`, `pv`, …), `g`, `lg`, `dc`, `k`, `kill_port <port>`. |
-| `.gitconfig` | Aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), delta pager, zdiff3 conflicts, rebase-on-pull, osxkeychain. Repos under the work directory named in the `includeIf` (default `~/Development/aviam/`) get the work e-mail via `.gitconfig-aviam` — adjust both to your own layout and identity. |
+| `.gitconfig` | Aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), delta pager, zdiff3 conflicts, rebase-on-pull, credential helper per OS via `~/.gitconfig-os`. Repos under the work directory named in the `includeIf` (default `~/Development/aviam/`) get the work e-mail via `.gitconfig-aviam` — adjust both to your own layout and identity. |
 | `.gitignore_global` | Ignore rules for every repo. |
 | `claude/CLAUDE.md` | Global Claude Code rules shared by all repos (TDD, TS/React rules, code limits). Repo `AGENTS.md` files add specifics. |
 | `claude/settings.json` | Claude Code user settings: permission allow/deny list and the hooks below. |
 | `claude/hooks/guard-bash.sh` | PreToolUse: blocks `db:push`/`db:reset`/`db:seed`/`migrate:apply`, prisma/drizzle push & reset, destructive `psql`, `git --no-verify`. |
 | `claude/hooks/format-file.sh` | PostToolUse: runs the project's Prettier (or ruff) on every file Claude edits. |
+| `install.sh`, `install/` | Installer: `lib.sh` helpers, `macos.sh` (Homebrew/iTerm2), `linux.sh` + `linux-pkg.sh` (apt/dnf/pacman) + `upstream.sh` (tools into `~/.local`). |
+| `test/` | `unit.sh` (helpers, no network), `lint.sh` (shellcheck), `linux.sh` (installs in Ubuntu/Debian/Fedora/Arch containers and verifies; needs Docker, e.g. Colima). |
 | `skeletons/` | Templates loaded into new `*.tsx`, `*.test.tsx`, `*.sh`, `*.html` and blog-post `*.md` files. |
 
 ## Neovim cheat sheet

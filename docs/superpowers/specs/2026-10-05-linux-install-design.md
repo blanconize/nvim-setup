@@ -49,9 +49,10 @@ install/upstream.sh   Downloads nach ~/.local (neovim, fzf, lazygit, delta,
                       tree-sitter, node, pnpm, pdm)
 ```
 
-Jedes Plattform-Modul definiert dieselben drei Funktionen; `install.sh` ruft
+Jedes Plattform-Modul definiert dieselben vier Funktionen; `install.sh` ruft
 sie in fester Reihenfolge auf:
 
+0. `platform_preflight` — prüft Distro und Architektur, bevor etwas geändert wird
 1. `platform_packages` — CLI-Tooling installieren
 2. gemeinsam: oh-my-zsh, honukai + `ZSH_THEME`, Claude Code
 3. `platform_gui` — Fonts/Terminal (Mac: iTerm2, Nerd Font, `duti`, Profil;
@@ -101,11 +102,11 @@ Nicht-versionskritische Tools ohne Distro-Paket nutzen Mindestversion `0`.
 | pnpm | 0 | offizieller Standalone-Installer (`get.pnpm.io`) |
 | pdm | 0 | offizieller Installer (`pdm-project.org/install-pdm.py`) |
 
-`~/.local/bin` wird über `ensure_line` in `~/.zprofile` (und `~/.profile`
-für den ersten Login vor `chsh`) auf den `PATH` gesetzt; für `~/.local/opt/node/bin`
-gilt dasselbe. Versionsauflösung „latest“ über die GitHub-Release-Redirects
-(`…/releases/latest/download/<asset>`), wo Asset-Namen versionslos sind;
-sonst über die Releases-API mit `jq`.
+`~/.local/bin`, `~/.local/opt/node/bin` und pnpms Verzeichnisse
+(`~/.local/share/pnpm/bin` bzw. `~/.local/share/pnpm`) werden über `ensure_line`
+in `~/.zshenv` (jede zsh, auch Nicht-Login-Terminals) und `~/.profile` auf den
+`PATH` gesetzt. Versionsauflösung „latest“ über die GitHub-Releases-API mit `jq`; das
+Asset wird per Regex (case-insensitiv) auf den Namen ausgewählt.
 
 ### Login-Shell
 
