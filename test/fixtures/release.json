@@ -1,0 +1,12 @@
+{
+  "tag_name": "v0.11.4",
+  "assets": [
+    { "name": "nvim-linux-arm64.appimage",           "browser_download_url": "https://example.test/nvim-linux-arm64.appimage" },
+    { "name": "nvim-linux-arm64.tar.gz",             "browser_download_url": "https://example.test/nvim-linux-arm64.tar.gz" },
+    { "name": "nvim-linux-x86_64.tar.gz.zsync",      "browser_download_url": "https://example.test/nvim-linux-x86_64.tar.gz.zsync" },
+    { "name": "nvim-linux-x86_64.tar.gz",            "browser_download_url": "https://example.test/nvim-linux-x86_64.tar.gz" },
+    { "name": "lazygit_0.55.1_Darwin_x86_64.tar.gz", "browser_download_url": "https://example.test/lazygit_darwin.tar.gz" },
+    { "name": "lazygit_0.55.1_Linux_x86_64.tar.gz",  "browser_download_url": "https://example.test/lazygit_linux.tar.gz" },
+    { "name": "shasum.txt",                          "browser_download_url": "https://example.test/shasum.txt" }
+  ]
+}

@@ -14,6 +14,8 @@ source "$ROOT/test/assert.sh"
 source "$ROOT/install/lib.sh"
 # shellcheck source=install/linux-pkg.sh
 source "$ROOT/install/linux-pkg.sh"
+# shellcheck source=install/upstream.sh
+source "$ROOT/install/upstream.sh"
 
 # --- version_ge / tool_version / ensure_min_version
 check  "0.11.4 satisfies 0.11"                    version_ge 0.11.4 0.11
@@ -89,5 +91,37 @@ refute "unknown manager has no package list" pkg_names zypper
 as_uid() { local uid="$1"; ( id() { echo "$uid"; }; sudo() { echo "sudo $*"; }; as_root echo hi ); }
 check "root runs commands without sudo" eq "$(as_uid 0)" hi
 check "a normal user goes through sudo" eq "$(as_uid 1000)" "sudo echo hi"
+
+# --- release assets
+check  "x86_64 also matches amd64/x64 spellings" eq "$(arch_regex x86_64)" 'x86_64|amd64|x64'
+check  "aarch64 also matches arm64"              eq "$(arch_regex aarch64)" 'aarch64|arm64'
+refute "riscv64 is unsupported"                  arch_regex riscv64
+
+github_release_json() { cat "$FIX/release.json"; }
+asset() { release_asset_url some/repo "$1" 2>/dev/null; }
+check  "picks the x86_64 neovim tarball, not .zsync/.appimage" \
+  eq "$(asset "^nvim-linux-($(arch_regex x86_64))\.tar\.gz$")" https://example.test/nvim-linux-x86_64.tar.gz
+check  "picks the arm64 neovim tarball" \
+  eq "$(asset "^nvim-linux-($(arch_regex aarch64))\.tar\.gz$")" https://example.test/nvim-linux-arm64.tar.gz
+check  "matches asset names case-insensitively (lazygit's Linux_)" \
+  eq "$(asset "^lazygit_.*_linux_($(arch_regex x86_64))\.tar\.gz$")" https://example.test/lazygit_linux.tar.gz
+refute "fails when no asset matches" asset '^nope$'
+check  "a missing asset warns on stderr, not into the captured URL" eq "$(asset '^nope$')" ""
+
+# --- a failed download keeps the existing install
+mkdir -p "$TMP/home/.local/opt/nvim/bin"
+echo old > "$TMP/home/.local/opt/nvim/bin/nvim"
+# shellcheck disable=SC2329 # stubs are called by install_neovim
+broken_nvim_download() { # <how>: noasset | curlfail
+  local how="$1"
+  ( LOCAL_OPT="$TMP/home/.local/opt"; LOCAL_BIN="$TMP/home/.local/bin"
+    if [ "$how" = noasset ]; then release_asset_url() { return 1; }
+    else release_asset_url() { echo https://example.test/x.tar.gz; }; curl() { return 22; }; fi
+    install_neovim ) >/dev/null 2>&1
+}
+refute "install_neovim fails without a matching asset" broken_nvim_download noasset
+refute "install_neovim fails when the download breaks" broken_nvim_download curlfail
+check  "a failed neovim install leaves the old one in place" eq "$(cat "$TMP/home/.local/opt/nvim/bin/nvim")" old
+check  "a failed neovim install leaves no temp dirs behind" eq "$(ls -A "$TMP/home/.local/opt")" nvim
 
 finish_tests
