@@ -21,6 +21,12 @@ contains() {
   return 1
 }
 
+has() { # has <text> <substring>
+  case "$1" in *"$2"*) return 0 ;; esac
+  printf '     [%s] not found in [%s]\n' "$2" "$1"
+  return 1
+}
+
 finish_tests() {
   if [ "$FAILS" -eq 0 ]; then echo "all passed"; else echo "$FAILS failed"; exit 1; fi
 }

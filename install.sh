@@ -16,10 +16,10 @@ source "$DOTFILES/install/lib.sh"
 
 case "$(uname -s)" in
   Darwin) OS=macos ;;
-  Linux)  die "Linux support is not implemented yet." ;;
+  Linux)  OS=linux ;;
   *)      die "Unsupported OS $(uname -s): this installer targets macOS and Linux." ;;
 esac
-# shellcheck source=install/macos.sh
+# shellcheck source=/dev/null # install/macos.sh or install/linux.sh, both linted directly
 source "$DOTFILES/install/$OS.sh"
 
 install_shell() {

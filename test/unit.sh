@@ -12,10 +12,8 @@ trap 'rm -rf "$TMP"' EXIT
 source "$ROOT/test/assert.sh"
 # shellcheck source=install/lib.sh
 source "$ROOT/install/lib.sh"
-# shellcheck source=install/linux-pkg.sh
-source "$ROOT/install/linux-pkg.sh"
-# shellcheck source=install/upstream.sh
-source "$ROOT/install/upstream.sh"
+# shellcheck source=install/linux.sh
+source "$ROOT/install/linux.sh"
 
 # --- version_ge / tool_version / ensure_min_version
 check  "0.11.4 satisfies 0.11"                    version_ge 0.11.4 0.11
@@ -123,5 +121,29 @@ refute "install_neovim fails without a matching asset" broken_nvim_download noas
 refute "install_neovim fails when the download breaks" broken_nvim_download curlfail
 check  "a failed neovim install leaves the old one in place" eq "$(cat "$TMP/home/.local/opt/nvim/bin/nvim")" old
 check  "a failed neovim install leaves no temp dirs behind" eq "$(ls -A "$TMP/home/.local/opt")" nvim
+
+# --- GUI detection
+printf 'Linux version 6.8.0-45-generic (buildd@lcy02)\n' > "$TMP/proc-native"
+printf 'Linux version 5.15.167.4-microsoft-standard-WSL2\n' > "$TMP/proc-wsl"
+gui() { DISPLAY="$1" WAYLAND_DISPLAY="$2" is_gui_session "$TMP/proc-$3"; }
+check  "an X11 desktop is a GUI session"           gui :0 "" native
+check  "a Wayland desktop is a GUI session"        gui "" wayland-0 native
+refute "ssh/headless is no GUI session"            gui "" "" native
+refute "WSLg sets DISPLAY but is no Linux desktop" gui :0 wayland-0 wsl
+
+# --- preflight aborts before changing anything
+preflight_with() { OS_RELEASE="$FIX/os-release/$1" bash -c "$(declare -f die warn detect_pkg_manager arch_regex platform_preflight); platform_preflight; echo \"pm=\$PM\"" 2>&1; }
+check  "preflight picks the package manager" has "$(preflight_with fedora)" pm=dnf
+check  "preflight rejects unknown distros"   has "$(preflight_with alpine)" "Unsupported distro"
+quiet_preflight() { preflight_with "$1" >/dev/null; }
+refute "preflight on an unknown distro exits non-zero" quiet_preflight alpine
+
+# --- PATH line reaches every upstream install location
+# shellcheck disable=SC2016 # the line must contain the literal, unexpanded $HOME
+{
+check "PATH line covers ~/.local/bin"      contains "$(echo "$LOCAL_PATH_LINE" | tr ':"' '  ')" '$HOME/.local/bin'
+check "PATH line covers node"              contains "$(echo "$LOCAL_PATH_LINE" | tr ':"' '  ')" '$HOME/.local/opt/node/bin'
+check "PATH line covers pnpm's bin layout" contains "$(echo "$LOCAL_PATH_LINE" | tr ':"' '  ')" '$HOME/.local/share/pnpm/bin'
+}
 
 finish_tests
