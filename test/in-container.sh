@@ -13,7 +13,7 @@ case "$(id_of)" in
     if [ "$(id_of)" = ubuntu ]; then
       DEBIAN_FRONTEND=noninteractive apt-get install -y -qq neovim fzf >/dev/null
     fi ;;
-  fedora) dnf install -y -q sudo git shadow-utils util-linux >/dev/null ;;
+  fedora|rocky|almalinux) dnf install -y -q sudo git shadow-utils util-linux >/dev/null ;;
   arch)
     # The Arch image is amd64-only; emulated on an arm64 host, the kernel rejects
     # pacman's x86_64 seccomp sandbox. Real Arch machines keep the sandbox.

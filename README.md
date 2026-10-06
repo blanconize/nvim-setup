@@ -18,7 +18,7 @@ Clone it wherever you like — the symlinks point at the clone, so the
 location does not matter, only that it stays put. Prerequisites: `git`
 (on a Mac: Xcode Command Line Tools), and on Linux `curl` plus `sudo`
 rights. Supported: macOS, and Linux distributions with **apt** (Debian,
-Ubuntu, Mint …), **dnf** (Fedora, RHEL family) or **pacman** (Arch family),
+Ubuntu, Mint …), **dnf** (Fedora; RHEL, Rocky, Alma via EPEL) or **pacman** (Arch family),
 on x86_64 or aarch64 — desktop, server and WSL2 alike.
 `install.sh` is idempotent and pins nothing — every installer fetches the
 current version. On macOS it
@@ -134,7 +134,7 @@ Quit the Claude desktop app and VS Code — together ~2.2 GB of Electron.
 | `claude/hooks/guard-bash.sh` | PreToolUse: blocks `db:push`/`db:reset`/`db:seed`/`migrate:apply`, prisma/drizzle push & reset, destructive `psql`, `git --no-verify`. |
 | `claude/hooks/format-file.sh` | PostToolUse: runs the project's Prettier (or ruff) on every file Claude edits. |
 | `install.sh`, `install/` | Installer: `lib.sh` helpers, `macos.sh` (Homebrew/iTerm2), `linux.sh` + `linux-pkg.sh` (apt/dnf/pacman) + `upstream.sh` (tools into `~/.local`). |
-| `test/` | `unit.sh` (helpers, no network), `lint.sh` (shellcheck), `linux.sh` (installs in Ubuntu/Debian/Fedora/Arch containers and verifies; needs Docker, e.g. Colima). |
+| `test/` | `unit.sh` (helpers, no network), `lint.sh` (shellcheck), `linux.sh` (installs in Ubuntu/Debian/Fedora/Rocky/Arch containers and verifies; needs Docker, e.g. Colima). |
 | `skeletons/` | Templates loaded into new `*.tsx`, `*.test.tsx`, `*.sh`, `*.html` and blog-post `*.md` files. |
 
 ## Neovim cheat sheet

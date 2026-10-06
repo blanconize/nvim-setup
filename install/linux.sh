@@ -9,9 +9,10 @@ source "$DOTFILES/install/upstream.sh"
 
 OS_RELEASE="${OS_RELEASE:-/etc/os-release}"
 # ~/.zshenv (every zsh, also non-login terminals) and ~/.profile (bash, display managers).
-# pnpm links into $PNPM_HOME/bin (current layout) or $PNPM_HOME itself (v10).
+# pnpm links into $PNPM_HOME/bin (current layout) or $PNPM_HOME itself (v10); PNPM_HOME is set
+# here because oh-my-zsh's installer replaces the ~/.zshrc that pnpm's installer wrote it to.
 # shellcheck disable=SC2016 # expanded later by the shell that reads the file
-LOCAL_PATH_LINE='export PATH="$HOME/.local/bin:$HOME/.local/opt/node/bin:$HOME/.local/share/pnpm/bin:$HOME/.local/share/pnpm:$PATH"  # dotfiles: local PATH'
+LOCAL_PATH_LINE='export PNPM_HOME="$HOME/.local/share/pnpm" PATH="$HOME/.local/bin:$HOME/.local/opt/node/bin:$HOME/.local/share/pnpm/bin:$HOME/.local/share/pnpm:$PATH"  # dotfiles: local PATH'
 
 is_gui_session() { # is_gui_session [/proc/version]: desktop session that is not WSL(g)
   [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] || return 1
@@ -26,9 +27,14 @@ platform_preflight() {
 
 platform_packages() {
   export PATH="$LOCAL_BIN:$LOCAL_OPT/node/bin:$PNPM_HOME/bin:$PNPM_HOME:$PATH"
+  if needs_epel "$OS_RELEASE"; then ensure_dnf_extra_repos "$OS_RELEASE"; fi
   # shellcheck disable=SC2046 # pkg_names is a space-separated list on purpose
   ensure_native_packages "$PM" $(pkg_names "$PM")
   if [ "$PM" = apt ]; then ensure_gh_apt; fi
+  # Mason's basedpyright needs Python >= 3.10; RHEL 9 rebuilds ship 3.9 but carry python3.12
+  if needs_epel "$OS_RELEASE" && ! version_ge "$(tool_version python3)" 3.10; then
+    ensure_native_packages "$PM" python3.12
+  fi
 
   ensure_min_version nvim 0.11 install_neovim
   ensure_min_version fzf 0.48 install_fzf   # `fzf --zsh` in .zsh-tools

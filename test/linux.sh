@@ -4,7 +4,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-[ $# -gt 0 ] || set -- ubuntu:24.04 debian:13 fedora:latest archlinux:latest
+[ $# -gt 0 ] || set -- ubuntu:24.04 debian:13 fedora:latest rockylinux/rockylinux:9 archlinux:latest
 
 failed=""
 for image in "$@"; do

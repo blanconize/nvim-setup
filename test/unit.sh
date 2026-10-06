@@ -83,6 +83,9 @@ check  "apt brings venv for pdm"            contains "$(pkg_names apt)" python3-
 check  "dnf brings chsh"                    contains "$(pkg_names dnf)" util-linux-user
 check  "pacman names gh github-cli"         contains "$(pkg_names pacman)" github-cli
 refute "unknown manager has no package list" pkg_names zypper
+check  "RHEL rebuilds need EPEL for ripgrep/zoxide/gh" needs_epel "$FIX/os-release/rocky"
+refute "Fedora ships them itself"                     needs_epel "$FIX/os-release/fedora"
+refute "apt distros never need EPEL"                  needs_epel "$FIX/os-release/ubuntu"
 
 # --- as_root: no sudo when already root (servers, containers)
 # shellcheck disable=SC2329 # id/sudo stubs are called by as_root
@@ -145,5 +148,8 @@ check "PATH line covers ~/.local/bin"      contains "$(echo "$LOCAL_PATH_LINE" |
 check "PATH line covers node"              contains "$(echo "$LOCAL_PATH_LINE" | tr ':"' '  ')" '$HOME/.local/opt/node/bin'
 check "PATH line covers pnpm's bin layout" contains "$(echo "$LOCAL_PATH_LINE" | tr ':"' '  ')" '$HOME/.local/share/pnpm/bin'
 }
+# shellcheck disable=SC2016 # $PNPM_HOME must expand in the child shell
+check "PATH line exports PNPM_HOME (oh-my-zsh replaces the ~/.zshrc pnpm wrote it to)" \
+  eq "$(env -i HOME=/home/u PATH=/usr/bin:/bin bash -c "$LOCAL_PATH_LINE"$'\n''echo "$PNPM_HOME"')" /home/u/.local/share/pnpm
 
 finish_tests

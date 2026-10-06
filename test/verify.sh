@@ -33,6 +33,9 @@ login_shell() { basename "$(getent passwd "$(id -un)" | cut -d: -f7)"; }
 check "zsh is the login shell" eq "$(login_shell)" zsh
 check "a non-login zsh finds the upstream nvim" \
   eq "$(env -i HOME="$HOME" PATH=/usr/bin:/bin zsh -c 'command -v nvim')" "$HOME/.local/bin/nvim"
+# shellcheck disable=SC2016 # expands in the interactive zsh
+check "an interactive zsh knows PNPM_HOME (pnpm add -g needs it)" \
+  eq "$(zsh -ic 'echo $PNPM_HOME' 2>/dev/null)" "$HOME/.local/share/pnpm"
 
 check "Lazy sync runs clean" nvim --headless "+Lazy! sync" +qa
 for pkg in $MASON_PKGS; do

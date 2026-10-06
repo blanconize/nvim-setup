@@ -19,6 +19,29 @@ detect_pkg_manager() { # detect_pkg_manager [os-release file] -> apt|dnf|pacman
   return 1
 }
 
+needs_epel() { # needs_epel [os-release file]: RHEL and rebuilds (Rocky, Alma) lack ripgrep/zoxide/gh
+  local file="${1:-/etc/os-release}" id
+  # shellcheck source=/dev/null
+  id="$(. "$file" 2>/dev/null && printf '%s' "${ID:-}")"
+  [ "$(detect_pkg_manager "$file")" = dnf ] && [ "$id" != fedora ]
+}
+
+ensure_dnf_extra_repos() { # ensure_dnf_extra_repos [os-release file]: EPEL plus GitHub's gh repository
+  local file="${1:-/etc/os-release}" major
+  info "Checking for EPEL and the gh repository..."
+  if rpm -q epel-release >/dev/null 2>&1 && [ -f /etc/yum.repos.d/gh-cli.repo ]; then
+    ok "  EPEL and the gh repository are already configured"
+    return
+  fi
+  warn "  installing EPEL and the gh repository"
+  # shellcheck source=/dev/null
+  major="$(. "$file" && printf '%s' "${VERSION_ID%%.*}")"
+  # Rocky/Alma carry epel-release in their extras repo; RHEL itself needs the Fedora-hosted rpm
+  as_root dnf install -y -q epel-release 2>/dev/null \
+    || as_root dnf install -y -q "https://dl.fedoraproject.org/pub/epel/epel-release-latest-$major.noarch.rpm"
+  curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | as_root tee /etc/yum.repos.d/gh-cli.repo >/dev/null
+}
+
 pkg_names() { # pkg_names <manager>: what install.sh needs natively (apt gets gh from GitHub's repo)
   local common="zsh git curl unzip tar gzip jq tmux lsof ripgrep zoxide"
   case "$1" in
