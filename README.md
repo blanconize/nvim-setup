@@ -95,8 +95,12 @@ dev path/to/some-repo
 ```
 
 opens (or re-attaches) a tmux session named after the repo: Neovim on the
-left, Claude Code on the right, a second window with a plain shell. tmux
-prefix is `Ctrl-a`; `|` / `-` split, `h j k l` move between panes.
+left, Claude Code on the right, a second window with a plain shell. On a
+portrait (pivoted) screen — fewer columns than twice the rows — Neovim goes
+on top and Claude below instead; `dev -v` / `dev -h` force stacked / side by
+side, and `Ctrl-a v` flips a running session (e.g. after moving it to the
+other monitor). tmux prefix is `Ctrl-a`; `|` / `-` split, `h j k l` move
+between panes.
 
 `claude` is a shell function: it starts the CLI with `--ide`, warns when a
 session already runs in the same repo, and offers `--continue` for the last
@@ -124,8 +128,8 @@ Quit the Claude desktop app and VS Code — together ~2.2 GB of Electron.
 | Path | Purpose |
 |---|---|
 | `nvim/init.lua` | Neovim: lazy.nvim, Treesitter, LSP via Mason (ts_ls, basedpyright, json, html, css, lua, bash, yaml; tailwind on demand), blink.cmp completion, conform (Prettier/ruff/stylua on save), nvim-lint (eslint_d/ruff), organize-imports on save for TS, fzf-lua, gitsigns/fugitive/diffview, vim-test (Vitest/pytest), oil.nvim, claudecode.nvim. |
-| `.tmux.conf` | Prefix `Ctrl-a`, vi keys, mouse, focus-events, path-preserving splits. |
-| `.zsh-tools` | `EDITOR=nvim`, fzf + zoxide shell integration, the `dev` function. |
+| `.tmux.conf` | Prefix `Ctrl-a`, vi keys, mouse, focus-events, path-preserving splits, `v` flips the dev layout (side by side ↔ stacked). |
+| `.zsh-tools` | `EDITOR=nvim`, fzf + zoxide shell integration, the `dev` function (picks side by side or stacked from the terminal's shape). |
 | `.zsh-aliases` | pnpm shortcuts (`pd`, `pt`, `pv`, …), `g`, `lg`, `dc`, `k`, `kill_port <port>`. |
 | `.gitconfig` | Aliases (`st`, `lg`, `undo`, `psf`, `cln`, …), delta pager, zdiff3 conflicts, rebase-on-pull, credential helper per OS via `~/.gitconfig-os`. Repos under the work directory named in the `includeIf` (default `~/Development/aviam/`) get the work e-mail via `.gitconfig-aviam` — adjust both to your own layout and identity. |
 | `.gitignore_global` | Ignore rules for every repo. |
@@ -134,7 +138,7 @@ Quit the Claude desktop app and VS Code — together ~2.2 GB of Electron.
 | `claude/hooks/guard-bash.sh` | PreToolUse: blocks `db:push`/`db:reset`/`db:seed`/`migrate:apply`, prisma/drizzle push & reset, destructive `psql`, `git --no-verify`. |
 | `claude/hooks/format-file.sh` | PostToolUse: runs the project's Prettier (or ruff) on every file Claude edits. |
 | `install.sh`, `install/` | Installer: `lib.sh` helpers, `macos.sh` (Homebrew/iTerm2), `linux.sh` + `linux-pkg.sh` (apt/dnf/pacman) + `upstream.sh` (tools into `~/.local`). |
-| `test/` | `unit.sh` (helpers, no network), `lint.sh` (shellcheck), `linux.sh` (installs in Ubuntu/Debian/Fedora/Rocky/Arch containers and verifies; needs Docker, e.g. Colima). |
+| `test/` | `unit.sh` (helpers, no network), `lint.sh` (shellcheck), `dev.sh` (the `dev` layouts on a private tmux server), `linux.sh` (installs in Ubuntu/Debian/Fedora/Rocky/Arch containers and verifies; needs Docker, e.g. Colima). |
 | `skeletons/` | Templates loaded into new `*.tsx`, `*.test.tsx`, `*.sh`, `*.html` and blog-post `*.md` files. |
 
 ## Neovim cheat sheet
